@@ -68,6 +68,9 @@ jobs:
           echo '{}' > ./package.json
           npm install '@go-task/cli@${{ env.go-task-version }}'
 
+          echo '[command]which task'
+          which task
+
           readonly bin_dir='node_modules/.bin'
           if [[ -f "./${bin_dir}/task.exe" ]]; then
             realpath "./${bin_dir}" >> "${GITHUB_PATH}"
