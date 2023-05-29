@@ -68,14 +68,14 @@ jobs:
           echo '{}' > ./package.json
           npm install '@go-task/cli@${{ env.go-task-version }}'
 
-      - name: Run task command
-        shell: bash
-        run: |
-          if [[ -f ./node_modules/.bin/task.exe ]]; then
-            ./node_modules/.bin/task.exe --version
-          else
-            task --versiond
+          readonly bin_dir='node_modules/.bin'
+          if [[ -f "./${bin_dir}/task.exe" ]]; then
+            realpath "./${bin_dir}" >> "${GITHUB_PATH}"
           fi
+
+      - name: Run task command
+        shell: cmd
+        run: task --version
 
   install-using-chocolatey:
     runs-on: windows-latest
@@ -84,6 +84,7 @@ jobs:
         run: choco install go-task --version ${{ env.go-task-version }} --allow-multiple-versions --yes
 
       - name: Run task command
+        shell: cmd
         run: task --version
 
   install-from-github-release:
@@ -99,4 +100,5 @@ jobs:
           done
 
       - name: Run task command
+        shell: cmd
         run: task --version
