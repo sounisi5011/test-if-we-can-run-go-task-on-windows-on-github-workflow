@@ -1,0 +1,102 @@
+on:
+  push:
+    branches:
+      - main
+    tags-ignore:
+      - "**"
+  pull_request:
+env:
+  go-task-version: 3.25.0
+jobs:
+  find-available-node-versions:
+    runs-on: ubuntu-latest
+    env:
+      versions-filename: versions.json
+    outputs:
+      versions-json: ${{ steps.finder.outputs.versions-json }}
+    steps:
+      - uses: actions/cache@v3
+        with:
+          path: ./${{ env.versions-filename }}
+          key: nodejs-dist-index.json
+
+      - id: finder
+        shell: bash
+        run: |
+          # If the "versions.json" file does not exist,
+          # or it has been more than 1 day since the last update,
+          # download and create the "versions.json" file.
+          if [[ -z "$(find ./'${{ env.versions-filename }}' -mtime -1)" ]]; then
+            curl -L 'https://nodejs.org/dist/index.json' \
+              | jq -c '[.[].version | sub("^v"; "")]' \
+              > ./'${{ env.versions-filename }}'
+          fi
+
+          # see https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#multiline-strings
+          # see https://gotohayato.com/content/558/
+          delimiter="ghadelimiter_$(openssl rand -hex 32)"
+          readonly delimiter
+          {
+            echo "versions-json<<${delimiter}"
+            jq -c '[
+              .[] | select(
+                split(".")
+                | map(tonumber) as [$major]
+                | ($major == 16 or $major == 18 or $major == 19 or 20 <= $major)
+              )
+            ]' < ./'${{ env.versions-filename }}'
+            echo "${delimiter}"
+          } >> "${GITHUB_OUTPUT}"
+
+  install-using-npm:
+    needs: find-available-node-versions
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ${{ fromJson(needs.find-available-node-versions.outputs.versions-json) }}
+    steps:
+      - name: Setup Node.js ${{ matrix.node-version }}
+        id: setup-node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install @go-task/cli
+        shell: bash
+        run: |
+          echo '{}' > ./package.json
+          npm install '@go-task/cli@${{ env.go-task-version }}'
+
+      - name: Run task command
+        shell: bash
+        run: |
+          if [[ -f ./node_modules/.bin/task.exe ]]; then
+            ./node_modules/.bin/task.exe --version
+          else
+            task --versiond
+          fi
+
+  install-using-chocolatey:
+    runs-on: windows-latest
+    steps:
+      - name: Install go-task
+        run: choco install go-task --version ${{ env.go-task-version }} --allow-multiple-versions --yes
+
+      - name: Run task command
+        run: task --version
+
+  install-from-github-release:
+    runs-on: windows-latest
+    steps:
+      - name: Install go-task/task
+        shell: bash
+        run: |
+          curl -L 'https://github.com/go-task/task/releases/download/v${{ env.go-task-version }}/task_windows_amd64.zip' -o ./task.zip
+          unzip ./task.zip -d ./task
+          find ./task -type f -name 'task.exe' -print0 | while read -r -d '' task_filepath; do
+            dirname "${task_filepath}" >> "${GITHUB_PATH}"
+          done
+
+      - name: Run task command
+        run: task --version
