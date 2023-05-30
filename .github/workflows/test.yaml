@@ -91,6 +91,12 @@ jobs:
         # see https://qiita.com/Hiraku/items/e42bc5756157949a9742
         run: (Get-Command task).Definition
 
+      - name: Show the file hash of the installed task command
+        shell: pwsh
+        # see https://qiita.com/Hiraku/items/e42bc5756157949a9742
+        # see https://www.sukerou.com/2021/08/powershell.html
+        run: Get-FileHash -Algorithm SHA512 -LiteralPath (Get-Command task).Definition
+
       - name: Run task command
         shell: cmd
         run: task --version
@@ -105,6 +111,12 @@ jobs:
         shell: pwsh
         # see https://qiita.com/Hiraku/items/e42bc5756157949a9742
         run: (Get-Command task).Definition
+
+      - name: Show the file hash of the installed task command
+        shell: pwsh
+        # see https://qiita.com/Hiraku/items/e42bc5756157949a9742
+        # see https://www.sukerou.com/2021/08/powershell.html
+        run: Get-FileHash -Algorithm SHA512 -LiteralPath (Get-Command task).Definition
 
       - name: Run task command
         shell: cmd
@@ -126,6 +138,12 @@ jobs:
         shell: pwsh
         # see https://qiita.com/Hiraku/items/e42bc5756157949a9742
         run: (Get-Command task).Definition
+
+      - name: Show the file hash of the installed task command
+        shell: pwsh
+        # see https://qiita.com/Hiraku/items/e42bc5756157949a9742
+        # see https://www.sukerou.com/2021/08/powershell.html
+        run: Get-FileHash -Algorithm SHA512 -LiteralPath (Get-Command task).Definition
 
       - name: Run task command
         shell: cmd
