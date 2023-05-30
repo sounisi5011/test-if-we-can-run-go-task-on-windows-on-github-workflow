@@ -84,7 +84,11 @@ jobs:
 
       - name: Run task command
         shell: cmd
-        run: task --version
+        run: |
+          echo "[command]where task"
+          where task
+          echo "[command]task --version"
+          task --version
 
   install-using-chocolatey:
     runs-on: windows-latest
