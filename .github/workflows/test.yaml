@@ -68,14 +68,31 @@ jobs:
           echo '{}' > ./package.json
           npm install '@go-task/cli@${{ env.go-task-version }}'
 
-      - name: Run task command
-        shell: bash
-        run: |
-          if [[ -f ./node_modules/.bin/task.exe ]]; then
-            ./node_modules/.bin/task.exe --version
+          readonly local_bin_dir='node_modules/.bin'
+          echo '[command]which task'
+          if which task; then
+            :
+          elif [[ -f "./${local_bin_dir}/task.exe" ]]; then
+            local_bin_dir_fullpath="$(cygpath --windows "$(realpath "./${local_bin_dir}")")"
+            readonly local_bin_dir_fullpath
+            echo "task.exe was installed in ${local_bin_dir_fullpath}"
+            realpath "${local_bin_dir_fullpath}" >> "${GITHUB_PATH}"
           else
-            task --versiond
+            find "$(npm bin)" "$(npx node -p 'process.env.npm_config_prefix')" -type f -name 'task.exe' -print0 | while read -r -d '' task_filepath; do
+              task_dirpath="$(cygpath --windows "$(dirname "${task_filepath}")")"
+              echo "task.exe was installed in ${task_dirpath}"
+              echo "${task_dirpath}" >> "${GITHUB_PATH}"
+            done
           fi
+
+      - name: Show the path where the task command is installed
+        shell: pwsh
+        # see https://qiita.com/Hiraku/items/e42bc5756157949a9742
+        run: (Get-Command task).Definition
+
+      - name: Run task command
+        shell: cmd
+        run: task --version
 
   install-using-chocolatey:
     runs-on: windows-latest
@@ -83,7 +100,13 @@ jobs:
       - name: Install go-task
         run: choco install go-task --version ${{ env.go-task-version }} --allow-multiple-versions --yes
 
+      - name: Show the path where the task command is installed
+        shell: pwsh
+        # see https://qiita.com/Hiraku/items/e42bc5756157949a9742
+        run: (Get-Command task).Definition
+
       - name: Run task command
+        shell: cmd
         run: task --version
 
   install-from-github-release:
@@ -98,5 +121,11 @@ jobs:
             dirname "${task_filepath}" >> "${GITHUB_PATH}"
           done
 
+      - name: Show the path where the task command is installed
+        shell: pwsh
+        # see https://qiita.com/Hiraku/items/e42bc5756157949a9742
+        run: (Get-Command task).Definition
+
       - name: Run task command
+        shell: cmd
         run: task --version
