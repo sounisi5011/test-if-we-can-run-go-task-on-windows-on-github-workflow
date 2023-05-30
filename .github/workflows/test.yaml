@@ -6,7 +6,8 @@ on:
       - "**"
   pull_request:
 env:
-  go-task-version: 3.25.0
+  # Note: The latest version is 3.25.0, but this version has not yet been released to Chocolatey.
+  go-task-version: 3.24.0
 jobs:
   find-available-node-versions:
     runs-on: ubuntu-latest
