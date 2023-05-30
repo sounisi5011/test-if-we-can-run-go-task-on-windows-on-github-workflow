@@ -73,7 +73,13 @@ jobs:
           if which task; then
             :
           elif [[ -f "./${local_bin_dir}/task.exe" ]]; then
+            echo "task.exe was installed in ./${local_bin_dir}"
             realpath "./${local_bin_dir}" >> "${GITHUB_PATH}"
+          else
+            find "$(npm bin)" "$(npx node -p 'process.env.npm_config_prefix')" -type f -name 'task.exe' -print0 | while read -r -d '' task_filepath; do
+              echo "task.exe was installed in $(dirname "${task_filepath}")"
+              dirname "${task_filepath}" >> "${GITHUB_PATH}"
+            done
           fi
 
       - name: Run task command
