@@ -48,7 +48,7 @@ jobs:
             echo "${delimiter}"
           } >> "${GITHUB_OUTPUT}"
 
-  install-using-npm:
+  install-using-included-npm:
     needs: find-available-node-versions
     runs-on: windows-latest
     strategy:
@@ -61,6 +61,64 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+
+      - name: Install @go-task/cli
+        shell: bash
+        run: |
+          echo '{}' > ./package.json
+          npm install '@go-task/cli@${{ env.go-task-version }}'
+
+          readonly local_bin_dir='node_modules/.bin'
+          echo '[command]which task'
+          if which task; then
+            :
+          elif [[ -f "./${local_bin_dir}/task.exe" ]]; then
+            local_bin_dir_fullpath="$(cygpath --windows "$(realpath "./${local_bin_dir}")")"
+            readonly local_bin_dir_fullpath
+            echo "task.exe was installed in ${local_bin_dir_fullpath}"
+            realpath "${local_bin_dir_fullpath}" >> "${GITHUB_PATH}"
+          else
+            find "$(npm bin)" "$(npx node -p 'process.env.npm_config_prefix')" -type f -name 'task.exe' -print0 | while read -r -d '' task_filepath; do
+              task_dirpath="$(cygpath --windows "$(dirname "${task_filepath}")")"
+              echo "task.exe was installed in ${task_dirpath}"
+              echo "${task_dirpath}" >> "${GITHUB_PATH}"
+            done
+          fi
+
+      - name: Show the path where the task command is installed
+        shell: pwsh
+        # see https://qiita.com/Hiraku/items/e42bc5756157949a9742
+        run: (Get-Command task).Definition
+
+      - name: Show the file hash of the installed task command
+        shell: pwsh
+        # see https://qiita.com/Hiraku/items/e42bc5756157949a9742
+        # see https://www.sukerou.com/2021/08/powershell.html
+        run: (Get-FileHash -Algorithm SHA512 -LiteralPath (Get-Command task).Definition).Hash
+
+      - name: Run task command
+        shell: cmd
+        run: task --version
+
+  install-using-specified-npm:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [18.15.0, 19.7.0]
+        npm:
+          - 9.5.0 # npm versions included in Node.js 18.15.0 and Node.js 19.7.0
+          - 9.5.1 # npm versions included in Node.js 18.16.0 and Node.js 19.8.0
+          - 9.6.4 # npm versions included in Node.js 20.0.0
+    steps:
+      - name: Setup Node.js ${{ matrix.node-version }}
+        id: setup-node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Setup npm v${{ matrix.npm }}
+        run: npm install --global npm@${{ matrix.npm }}
 
       - name: Install @go-task/cli
         shell: bash
