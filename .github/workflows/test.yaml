@@ -95,7 +95,7 @@ jobs:
         shell: pwsh
         # see https://qiita.com/Hiraku/items/e42bc5756157949a9742
         # see https://www.sukerou.com/2021/08/powershell.html
-        run: Get-FileHash -Algorithm SHA512 -LiteralPath (Get-Command task).Definition
+        run: (Get-FileHash -Algorithm SHA512 -LiteralPath (Get-Command task).Definition).Hash
 
       - name: Run task command
         shell: cmd
@@ -116,7 +116,7 @@ jobs:
         shell: pwsh
         # see https://qiita.com/Hiraku/items/e42bc5756157949a9742
         # see https://www.sukerou.com/2021/08/powershell.html
-        run: Get-FileHash -Algorithm SHA512 -LiteralPath (Get-Command task).Definition
+        run: (Get-FileHash -Algorithm SHA512 -LiteralPath (Get-Command task).Definition).Hash
 
       - name: Run task command
         shell: cmd
@@ -143,7 +143,7 @@ jobs:
         shell: pwsh
         # see https://qiita.com/Hiraku/items/e42bc5756157949a9742
         # see https://www.sukerou.com/2021/08/powershell.html
-        run: Get-FileHash -Algorithm SHA512 -LiteralPath (Get-Command task).Definition
+        run: (Get-FileHash -Algorithm SHA512 -LiteralPath (Get-Command task).Definition).Hash
 
       - name: Run task command
         shell: cmd
