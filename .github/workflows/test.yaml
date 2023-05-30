@@ -73,12 +73,15 @@ jobs:
           if which task; then
             :
           elif [[ -f "./${local_bin_dir}/task.exe" ]]; then
-            echo "task.exe was installed in ./${local_bin_dir}"
-            realpath "./${local_bin_dir}" >> "${GITHUB_PATH}"
+            local_bin_dir_fullpath="$(cygpath --windows "$(realpath "./${local_bin_dir}")")"
+            readonly local_bin_dir_fullpath
+            echo "task.exe was installed in ${local_bin_dir_fullpath}"
+            realpath "${local_bin_dir_fullpath}" >> "${GITHUB_PATH}"
           else
             find "$(npm bin)" "$(npx node -p 'process.env.npm_config_prefix')" -type f -name 'task.exe' -print0 | while read -r -d '' task_filepath; do
-              echo "task.exe was installed in $(dirname "${task_filepath}")"
-              dirname "${task_filepath}" >> "${GITHUB_PATH}"
+              task_dirpath="$(cygpath --windows "$(dirname "${task_filepath}")")"
+              echo "task.exe was installed in ${task_dirpath}"
+              echo "${task_dirpath}" >> "${GITHUB_PATH}"
             done
           fi
 
