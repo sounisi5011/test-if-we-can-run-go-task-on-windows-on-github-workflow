@@ -85,19 +85,25 @@ jobs:
             done
           fi
 
+      - name: Show the path where the task command is installed
+        shell: pwsh
+        # see https://qiita.com/Hiraku/items/e42bc5756157949a9742
+        run: (Get-Command task).Definition
+
       - name: Run task command
         shell: cmd
-        run: |
-          echo "[command]where task"
-          where task
-          echo "[command]task --version"
-          task --version
+        run: task --version
 
   install-using-chocolatey:
     runs-on: windows-latest
     steps:
       - name: Install go-task
         run: choco install go-task --version ${{ env.go-task-version }} --allow-multiple-versions --yes
+
+      - name: Show the path where the task command is installed
+        shell: pwsh
+        # see https://qiita.com/Hiraku/items/e42bc5756157949a9742
+        run: (Get-Command task).Definition
 
       - name: Run task command
         shell: cmd
@@ -114,6 +120,11 @@ jobs:
           find ./task -type f -name 'task.exe' -print0 | while read -r -d '' task_filepath; do
             dirname "${task_filepath}" >> "${GITHUB_PATH}"
           done
+
+      - name: Show the path where the task command is installed
+        shell: pwsh
+        # see https://qiita.com/Hiraku/items/e42bc5756157949a9742
+        run: (Get-Command task).Definition
 
       - name: Run task command
         shell: cmd
